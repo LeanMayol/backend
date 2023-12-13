@@ -1,0 +1,29 @@
+[
+	{
+		"title": "Goma",
+		"description": "Es una goma",
+		"price": 300,
+		"thumbnail": "url imagen",
+		"code": 5431513,
+		"stock": 20,
+		"id": 2
+	},
+	{
+		"title": "Cartuchera",
+		"description": "Es una cartuchera",
+		"price": 1200,
+		"thumbnail": "url imagen",
+		"code": 45684,
+		"stock": 0,
+		"id": 3
+	},
+	{
+		"title": "Lapiz",
+		"description": "Es un lapiz",
+		"price": 250,
+		"thumbnail": "url imagen",
+		"code": 78651,
+		"stock": 20,
+		"id": 4
+	}
+]
