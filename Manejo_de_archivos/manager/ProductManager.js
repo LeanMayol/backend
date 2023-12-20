@@ -1,131 +1,134 @@
-import fs from 'fs'
+import fs from "fs";
 // const fs = require('fs');
 
 export default class ProductManager {
+  constructor(path) {
+    this.path = path;
+  }
 
-    constructor(path) {
-        this.path = path;
-    };
+  addProduct = async (product) => {
+    try {
+      const products = await this.getProducts();
+      const codeRepetido = products.find((p) => p.code == product.code);
 
-    addProduct = async(product) => {
+      if (
+        !product.title ||
+        !product.description ||
+        !product.price ||
+        !product.thumbnail ||
+        !product.code ||
+        product.stock == undefined
+      ) {
+        return console.log("Complete all fields");
+      }
 
-        try {
+      if (codeRepetido) {
+        return console.log("The insert code already exist!");
+      }
 
-            const products = await this.getProducts();
-            const codeRepetido = products.find(p => p.code == product.code);
-            
-            if(!product.title || !product.description || !product.price || !product.thumbnail || !product.code || product.stock == undefined){
-                return console.log('Complete all fields');
-            };
-            
-            if(codeRepetido) {
-                return console.log('The insert code already exist!');
-            };
+      let id;
 
-            let id;
+      if (products.length == 0) {
+        id = 1;
+      } else {
+        id = products[products.length - 1].id + 1;
+      }
 
-            if(products.length == 0) {
-                id = 1
-            } else {
-                id = products[products.length -1].id + 1
-            }
+      products.push({
+        ...product,
+        id,
+      });
 
-            products.push({
-                ...product,
-                id
-            });
+      await fs.promises.writeFile(
+        this.path,
+        JSON.stringify(products, null, "\t")
+      );
 
-            await fs.promises.writeFile(this.path, JSON.stringify(products, null, '\t'));
+      return products;
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
-            return products
+  getProducts = async () => {
+    try {
+      if (fs.existsSync(this.path)) {
+        const data = await fs.promises.readFile(this.path, "utf-8");
+        console.log(data);
+        const parseData = JSON.parse(data);
 
-        } catch (err) {
-            console.log(err);
-        };                   
+        return parseData;
+      } else {
+        return [];
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
-    };
+  getProductsById = async (id) => {
+    try {
+      let resultado = await this.getProducts();
+      let product = resultado.find((p) => p.id == id);
 
-    getProducts = async() => {
-        try {
-            if(fs.existsSync(this.path)) {
+      if (product) {
+        return console.log(product);
+      } else {
+        return console.error("Not Found");
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
-                const data = await fs.promises.readFile(this.path, 'utf-8');
-                console.log(data);
-                const parseData = JSON.parse(data);
+  updateProduct = async (product) => {
+    try {
+      const products = await this.getProducts();
+      const productToUpdate = products.find((p) => p.id == product.id);
 
-                return parseData;
+      if (!productToUpdate) {
+        return console.log(`Can't find the product with id: ${product.id}`);
+      }
 
-            } else {
-                return [];
-            };
-        } catch (err) {
-            console.log(err);
-        };
-    };
+      const indexOfProduct = products.findIndex((p) => p.id == product.id);
 
-    getProductsById = async(id) => {
-        try {
-            let resultado = await this.getProducts();
-            let product = resultado.find( p => p.id == id );
+      products[indexOfProduct] = {
+        ...productToUpdate,
+        ...product,
+      };
 
-            if(product) {
-                return console.log(product);
-            } else {
-                return console.error("Not Found");
-            };
-        } catch (err) {
-            console.log(err);
-        };
-    };
+      await fs.promises.writeFile(
+        this.path,
+        JSON.stringify(products, null, "\t")
+      );
 
-    updateProduct = async(product) => {
-        try {
+      return products[indexOfProduct];
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
-            const products = await this.getProducts();
-            const productToUpdate = products.find( p => p.id == product.id );
-            
-            if(!productToUpdate) {
-                return console.log(`Can't find the product with id: ${product.id}`);
-            };
-            
-            const indexOfProduct = products.findIndex( p => p.id == product.id );
+  deleteProduct = async (id) => {
+    try {
+      const products = await this.getProducts();
+      const indice = products.findIndex((p) => p.id === id);
 
-            products[indexOfProduct] = {
-                ...productToUpdate,
-                ...product
-            };
+      if (indice < 0) {
+        return console.log(`Can't find the product with id: ${id}`);
+      }
 
-            await fs.promises.writeFile(this.path, JSON.stringify(products, null, '\t'));
+      products.splice(indice, 1);
+      await fs.promises.writeFile(
+        this.path,
+        JSON.stringify(products, null, "\t")
+      );
 
-            return products[indexOfProduct];
-
-        } catch (err) {
-            console.log(err);
-        };
-
-    };
-
-    deleteProduct = async(id) => {
-        try {
-
-            const products = await this.getProducts();
-            const indice = products.findIndex( p => p.id === id );
-
-            if(indice < 0) {
-                return console.log(`Can't find the product with id: ${id}`);
-            };
-
-            products.splice(indice, 1);
-            await fs.promises.writeFile(this.path, JSON.stringify(products, null, '\t'));
-
-            return products;
-
-        } catch(err) {
-            console.log(err);
-        };
-    };
-
-};
+      return products;
+    } catch (err) {
+      console.log(err);
+    }
+  };
+}
 
 // const manager = new ProductManager('./files/products.json');
 
@@ -184,7 +187,6 @@ export default class ProductManager {
 //     console.log(await manager.deleteProduct(1))
 
 //     await manager.addProduct(producto1);
-
 
 // }
 
