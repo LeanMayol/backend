@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { ProductManager } from '../productManager.js';
+import { ProductManager } from '../dao/mongoDb/productManager.db.js';
 
-const manejoProductos = new ProductManager('./src/data/products.json');
+const manejoProductos = new ProductManager();
 const router = Router();
 
 /*ROUTER QUE MANEJA LOS PRODUCTOS
@@ -12,15 +12,12 @@ Se llama desde /api/products
 
 //GET
 router.get('/', async (req, res) => {
-    const { limit } = req.query;
+    const { limit, page, query, sort } = req.query;
     res.set('Content-Type', 'application/json');
-    const productos = await manejoProductos.getProducts();
+    const productos = await manejoProductos.getProductsPipeline(parseInt(limit), parseInt(page), query, sort);
     res.status(200);
-    if (limit > 0) {
-        res.send(productos.slice(0, limit));
-    } else {
-        res.send(productos);
-    }
+    res.send(productos);
+    
 });
 
 router.get('/:pid', async (req, res) => {
@@ -51,7 +48,7 @@ router.post('/', async (req, res) => {
 router.put('/:pid', async (req, res) => {
     const productId = req.params.pid;
     res.set('Content-Type', 'application/json');
-    const actualizarProducto = JSON.parse(await manejoProductos.updateProduct(parseInt(productId), req.body));
+    const actualizarProducto = JSON.parse(await manejoProductos.updateProduct(productId, req.body));
     if (actualizarProducto.status === "ok") {
         res.status(201);
         res.send(`{"status": "ok"}`);
@@ -65,7 +62,7 @@ router.put('/:pid', async (req, res) => {
 router.delete('/:pid', async (req, res) => {
     const productId = req.params.pid;
     res.set('Content-Type', 'application/json');
-    const eliminarProducto = JSON.parse(await manejoProductos.deleteProduct(parseInt(productId)));
+    const eliminarProducto = JSON.parse(await manejoProductos.deleteProduct(productId));
     if (eliminarProducto.status === "ok") {
         res.send(`{"status": "ok"}`);
     } else {
